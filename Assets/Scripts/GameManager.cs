@@ -8,7 +8,6 @@ public class GameManager : MonoBehaviour
 
     public Transform customerSpawner;
     public GameObject customerPrefab;
-    public Transform owner;
 
     public Transform[] slotList;
     public Transform[] slotPivotList; // point to find path

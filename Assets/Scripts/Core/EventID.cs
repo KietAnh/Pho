@@ -1,0 +1,42 @@
+
+
+public enum EventID
+{
+    ResWinGame,
+    ResLoseGame,
+    ResEnqueueFruit,
+    ResMoveFruitRight,
+    ResUnlockFruit,
+    ResStartMatch3,
+    ResCompleteMatch3,
+    ResBackOneStep,
+    ResLockFruit,
+    ResHelpMatch3,
+    ResResetBoard,
+    ResAddBackCount,
+    ResAddHelpCount,
+    ResAddResetCount,
+    ResTurnSound,
+    ResTurnMusic,
+    ResTurnVibra,
+    ResBuyPack,
+    ResHideAds,
+
+    ReqCheckLose,
+    ReqStartMatch3,
+    ReqCompleteMatch3,
+    ReqBackOneStep,
+    ReqHelpMatch3,
+    ReqResetBoard,
+    ReqAddBackCount,
+    ReqAddHelpCount,
+    ReqAddResetCount,
+    ReqTurnSound,
+    ReqTurnMusic,
+    ReqTurnVibra,
+    ReqBuyPack,
+    ReqRevive,
+
+    OnBuyCard,
+    OnRoll,
+}
