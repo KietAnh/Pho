@@ -3,18 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "FoodUnlockConfig", menuName = "Config/FoodUnlockConfig", order = 1)]
-public class FoodUnlockConfig : BaseConfig
+[CreateAssetMenu(fileName = "TableUnlockConfig", menuName = "Config/TableUnlockConfig", order = 1)]
+public class TableUnlockConfig : BaseConfig
 {
-    public List<FoodUnlockRecord> recordList;
+    public List<TableUnlockRecord> recordList;
 
-    public Dictionary<int, FoodUnlockRecord> recordMap;
-    public Dictionary<string, FoodUnlockRecord> recordMapByName;
+    public Dictionary<int, TableUnlockRecord> recordMap;
+    public Dictionary<string, TableUnlockRecord> recordMapByName;
 
     public override void CreateRecordMap()
     {
-        recordMap = new Dictionary<int, FoodUnlockRecord>();
-        recordMapByName = new Dictionary<string, FoodUnlockRecord>();
+        recordMap = new Dictionary<int, TableUnlockRecord>();
+        recordMapByName = new Dictionary<string, TableUnlockRecord>();
         foreach (var record in recordList)
         {
             if (!recordMap.ContainsKey(record.id))
@@ -51,16 +51,9 @@ public class FoodUnlockConfig : BaseConfig
 }
 
 [Serializable]
-public class FoodUnlockRecord : BaseRecord
+public class TableUnlockRecord : BaseRecord
 {
-    public FoodType type;
     public GameObject keyPrefab;
-    public GameObject objectPrefab;
+    public GameObject tablePrefab;
     public List<int> showKeys;
-}
-
-public enum FoodType
-{
-    TomChienXu,
-    Sushi,
 }

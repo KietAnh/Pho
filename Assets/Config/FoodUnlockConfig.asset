@@ -17,11 +17,11 @@ MonoBehaviour:
     id: 1
     type: 0
     keyPrefab: {fileID: 736754761117470891, guid: da9746d33fd24104282bf5fd756dc970, type: 3}
-    objectPrefab: {fileID: 7566900177775319471, guid: 7ed25889bd85b3543ba6ad99d1a0d80a, type: 3}
+    kitchenPrefab: {fileID: 7566900177775319471, guid: 7ed25889bd85b3543ba6ad99d1a0d80a, type: 3}
     showKeys: 02000000
   - name: Sushi
     id: 2
     type: 1
     keyPrefab: {fileID: 1845633251284365998, guid: 1c4c2c2cb4621a0468f1612f7d2d9bbb, type: 3}
-    objectPrefab: {fileID: 2568993992788904002, guid: f69c6d3ba1d9c7444bc9d859a3d65d7d, type: 3}
+    kitchenPrefab: {fileID: 2568993992788904002, guid: f69c6d3ba1d9c7444bc9d859a3d65d7d, type: 3}
     showKeys: 

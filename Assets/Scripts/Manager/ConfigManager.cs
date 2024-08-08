@@ -7,6 +7,12 @@ public class ConfigManager : SingletonBehaviour<ConfigManager>
 {
     public List<BaseConfig> configList;
     private Dictionary<Type, BaseConfig> _configMap = new Dictionary<Type, BaseConfig>();
+
+    protected override void Awake()
+    {
+        base.Awake();
+        Init();
+    }
     public void Init()
     {
         foreach (var config in configList)

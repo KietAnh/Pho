@@ -28,15 +28,15 @@ public class AudioManager : SingletonTemplate<AudioManager>
         SetGlobalVolume(null);
         SetGlobalVibra(null);
 
-        GED.ResED.addListener(EventID.ResTurnMusic, SetGlobalVolume);
-        GED.ResED.addListener(EventID.ResTurnSound, SetGlobalVolume);
-        GED.ResED.addListener(EventID.ResTurnVibra, SetGlobalVibra);
+        //GED.ResED.addListener(EventID.ResTurnMusic, SetGlobalVolume);
+        //GED.ResED.addListener(EventID.ResTurnSound, SetGlobalVolume);
+        //GED.ResED.addListener(EventID.ResTurnVibra, SetGlobalVibra);
     }
     public void OnDestroy()      // refactor, never call
     {
-        GED.ResED.removeListener(EventID.ResTurnMusic, SetGlobalVolume);
-        GED.ResED.removeListener(EventID.ResTurnSound, SetGlobalVolume);
-        GED.ResED.removeListener(EventID.ResTurnVibra, SetGlobalVibra);
+        //GED.ResED.removeListener(EventID.ResTurnMusic, SetGlobalVolume);
+        //GED.ResED.removeListener(EventID.ResTurnSound, SetGlobalVolume);
+        //GED.ResED.removeListener(EventID.ResTurnVibra, SetGlobalVibra);
     }
     public void SetGlobalVolume(GameEvent gameEvent)
     {
