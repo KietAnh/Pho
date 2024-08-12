@@ -17,9 +17,17 @@ MonoBehaviour:
     id: 1
     keyPrefab: {fileID: 7733887333589029764, guid: 37811600b4942204dac65312da748087, type: 3}
     tablePrefab: {fileID: 6171865288109059227, guid: c4ca371ef87dec54499e944f7387d620, type: 3}
+    areaUnlockCondition: 0
     showKeys: 02000000
   - name: table-2
     id: 2
     keyPrefab: {fileID: 2605995203333351162, guid: b4217171919505f4889ac99ee6f502b9, type: 3}
     tablePrefab: {fileID: 1096197790388505387, guid: 8ed5b0d46c2c7e94b909815093cefc00, type: 3}
+    areaUnlockCondition: 0
+    showKeys: 03000000
+  - name: table-3
+    id: 3
+    keyPrefab: {fileID: 7862651170065690123, guid: 8f17e420c052bb94da2b053bfa791564, type: 3}
+    tablePrefab: {fileID: 4868676083307625090, guid: 60a213cc999dd10438dbd4069c436df0, type: 3}
+    areaUnlockCondition: 1
     showKeys: 

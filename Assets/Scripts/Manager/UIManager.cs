@@ -9,6 +9,16 @@ public class UIManager : MonoBehaviour
     public TMP_InputField timeScaleInputField;
     public TextMeshProUGUI textMoney;
 
+    private void Awake()
+    {
+        GED.ED.addListener(EventID.OnEarnMoney, OnEarnMoney_UpdateUI);
+    }
+
+    private void OnDestroy()
+    {
+        GED.ED.removeListener(EventID.OnEarnMoney, OnEarnMoney_UpdateUI);
+    }
+
     private void Start()
     {
         timeScaleInputField.text = 1.ToString();
@@ -19,8 +29,12 @@ public class UIManager : MonoBehaviour
         Time.timeScale = float.Parse(timeScaleInputField.text);
     }
 
-    public void UpdateMoney()
+    #region  event
+
+    private void OnEarnMoney_UpdateUI(GameEvent gameEvent)
     {
-        textMoney.text = gameManager.money.ToString();
+        textMoney.text = ServiceManager.Singleton.GetService<MainService>().money.ToString();
     }
+
+    #endregion
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -23,7 +23,6 @@ public class GameManager : MonoBehaviour
     private Queue<int> _customerQueue;
     public Queue<int> CustomerQueue => _customerQueue;
 
-    public int money { get; private set; }
 
     private void Awake()
     {
@@ -42,12 +41,14 @@ public class GameManager : MonoBehaviour
 
         GED.ED.addListener(EventID.OnUnlockFoodKitchen, OnUnlockFoodKitchen_UnlockFoodKey);
         GED.ED.addListener(EventID.OnUnlockTable, OnUnlockTable_UnlockTableKey);
+        GED.ED.addListener(EventID.OnUnlockArea, OnUnlockArea_UnlockArea);
     }
 
     private void OnDestroy()
     {
         GED.ED.removeListener(EventID.OnUnlockFoodKitchen, OnUnlockFoodKitchen_UnlockFoodKey);
         GED.ED.removeListener(EventID.OnUnlockTable, OnUnlockTable_UnlockTableKey);
+        GED.ED.removeListener(EventID.OnUnlockArea, OnUnlockArea_UnlockArea);
 
         ServiceManager.Singleton.SaveAllData();
     }
@@ -86,17 +87,13 @@ public class GameManager : MonoBehaviour
             Instantiate(kitchenPrefab);
         }
 
-        for (int i = 0; i < showKeyFoodUnlockIds.Count; i++)
-        {
-            var keyPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(showKeyFoodUnlockIds[i]).keyPrefab;
-            var keyObject = Instantiate(keyPrefab);
-            keyObject.GetComponent<KeyFoodUnlock>().id = showKeyFoodUnlockIds[i];
-        }
+        UnlockFoodKey(showKeyFoodUnlockIds);
     }
 
     private void InitTableUnlock()
     {
         int tableUnlockId = ServiceManager.Singleton.GetService<MainService>().tableUnlockId;
+        DevLog.Log("" + tableUnlockId);
         var showKeyTableUnlockIds = new List<int>();
 
         if (tableUnlockId == 0)
@@ -114,12 +111,7 @@ public class GameManager : MonoBehaviour
             Instantiate(tablePrefab);
         }
 
-        for (int i = 0; i < showKeyTableUnlockIds.Count; i++)
-        {
-            var keyPrefab = ConfigLoader.GetRecord<TableUnlockRecord>(showKeyTableUnlockIds[i]).keyPrefab;
-            var keyObject = Instantiate(keyPrefab);
-            keyObject.GetComponent<KeyTableUnlock>().id = showKeyTableUnlockIds[i];
-        }
+        UnlockTableKey(showKeyTableUnlockIds);
     }
 
     private void Update()
@@ -178,10 +170,34 @@ public class GameManager : MonoBehaviour
         Destroy(dishPlaceHolderList[slotIndex].GetChild(0).gameObject);
     }
 
-    public void EarnMoney(int count)
+    public void UnlockFoodKey(List<int> ids)
     {
-        money += count;
-        uiManager.UpdateMoney();
+        int areaUnlockId = ServiceManager.Singleton.GetService<MainService>().areaUnlockId;
+
+        for (int i = 0; i < ids.Count; i++)
+        {
+            if (areaUnlockId >= ConfigLoader.GetRecord<FoodUnlockRecord>(ids[i]).areaUnlockCondition)
+            {
+                var keyPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(ids[i]).keyPrefab;
+                var keyObject = Instantiate(keyPrefab);
+                keyObject.GetComponent<KeyFoodUnlock>().id = ids[i];
+            }
+        }
+    }
+
+    public void UnlockTableKey(List<int> ids)
+    {
+        int areaUnlockId = ServiceManager.Singleton.GetService<MainService>().areaUnlockId;
+
+        for (int i = 0; i < ids.Count; i++)
+        {
+            if (areaUnlockId >= ConfigLoader.GetRecord<TableUnlockRecord>(ids[i]).areaUnlockCondition)
+            {
+                var keyPrefab = ConfigLoader.GetRecord<TableUnlockRecord>(ids[i]).keyPrefab;
+                var keyObject = Instantiate(keyPrefab);
+                keyObject.GetComponent<KeyTableUnlock>().id = ids[i];
+            }
+        }
     }
 
 
@@ -192,12 +208,18 @@ public class GameManager : MonoBehaviour
         var param = gameEvent.Data as OneParam<List<int>>;
 
         List<int> foodKeyUnlockList = param.value;
-        foreach (var foodKeyId in foodKeyUnlockList)
-        {
-            var keyPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(foodKeyId).keyPrefab;
-            var keyObject = Instantiate(keyPrefab);
-            keyObject.GetComponent<KeyFoodUnlock>().id = foodKeyId;
-        }
+        //int areaUnlockId = ServiceManager.Singleton.GetService<MainService>().areaUnlockId;
+        //foreach (var foodKeyId in foodKeyUnlockList)
+        //{
+        //    if (areaUnlockId >= ConfigLoader.GetRecord<FoodUnlockRecord>(foodKeyId).areaUnlockCondition)
+        //    {
+        //        var keyPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(foodKeyId).keyPrefab;
+        //        var keyObject = Instantiate(keyPrefab);
+        //        keyObject.GetComponent<KeyFoodUnlock>().id = foodKeyId;
+        //    }
+        //}
+
+        UnlockFoodKey(foodKeyUnlockList);
     }
 
     private void OnUnlockTable_UnlockTableKey(GameEvent gameEvent)
@@ -205,12 +227,49 @@ public class GameManager : MonoBehaviour
         var param = gameEvent.Data as OneParam<List<int>>;
 
         List<int> tableKeyUnlockList = param.value;
-        foreach (var tableKeyId in tableKeyUnlockList)
+        //int areaUnlockId = ServiceManager.Singleton.GetService<MainService>().areaUnlockId;
+        //foreach (var tableKeyId in tableKeyUnlockList)
+        //{
+        //    if (areaUnlockId >= ConfigLoader.GetRecord<TableUnlockRecord>(tableKeyId).areaUnlockCondition)
+        //    {
+        //        var keyPrefab = ConfigLoader.GetRecord<TableUnlockRecord>(tableKeyId).keyPrefab;
+        //        var keyObject = Instantiate(keyPrefab);
+        //        keyObject.GetComponent<KeyTableUnlock>().id = tableKeyId;
+        //    }
+        //}
+
+        UnlockTableKey(tableKeyUnlockList);
+    }
+
+    private void OnUnlockArea_UnlockArea(GameEvent gameEvent)
+    {
+        int foodUnlockId = ServiceManager.Singleton.GetService<MainService>().foodUnlockId;
+        var showKeyFoodUnlockIds = new List<int>();
+
+        if (foodUnlockId == 0)
         {
-            var keyPrefab = ConfigLoader.GetRecord<TableUnlockRecord>(tableKeyId).keyPrefab;
-            var keyObject = Instantiate(keyPrefab);
-            keyObject.GetComponent<KeyTableUnlock>().id = tableKeyId;
+            showKeyFoodUnlockIds.Add(1);
         }
+        else
+        {
+            showKeyFoodUnlockIds = ConfigLoader.GetRecord<FoodUnlockRecord>(foodUnlockId).showKeys;
+        }
+
+        UnlockFoodKey(showKeyFoodUnlockIds);
+
+        int tableUnlockId = ServiceManager.Singleton.GetService<MainService>().tableUnlockId;
+        var showKeyTableUnlockIds = new List<int>();
+
+        if (tableUnlockId == 0)
+        {
+            showKeyTableUnlockIds.Add(1);
+        }
+        else
+        {
+            showKeyTableUnlockIds = ConfigLoader.GetRecord<TableUnlockRecord>(tableUnlockId).showKeys;
+        }
+
+        UnlockTableKey(showKeyTableUnlockIds);
     }
 
     #endregion

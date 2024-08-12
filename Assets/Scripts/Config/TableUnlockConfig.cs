@@ -55,5 +55,6 @@ public class TableUnlockRecord : BaseRecord
 {
     public GameObject keyPrefab;
     public GameObject tablePrefab;
+    public int areaUnlockCondition;
     public List<int> showKeys;
 }

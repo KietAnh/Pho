@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -56,6 +57,7 @@ public class FoodUnlockRecord : BaseRecord
     public FoodType type;
     public GameObject keyPrefab;
     public GameObject kitchenPrefab;
+    public int areaUnlockCondition;
     public List<int> showKeys;
 }
 

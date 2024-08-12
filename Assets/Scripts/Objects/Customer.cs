@@ -108,7 +108,7 @@ public class Customer : MonoBehaviour
                 textState.transform.parent.gameObject.SetActive(true);
                 DOVirtual.DelayedCall(3f, () =>
                 {
-                    gameManager.EarnMoney(10);
+                    GameController.EarnMoney(10);
                     ChangeState(CustomerState.Leaving);
                     Vector3 currentPosition = transform.position;
                     gameManager.RemoveCustomer(_slotIndex);
