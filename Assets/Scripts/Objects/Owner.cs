@@ -6,7 +6,7 @@ using Pathfinding;
 public class Owner : MonoBehaviour
 {
     public GameManager gameManager;
-    public Transform kitchenTrans;
+    public Transform kitchenTrans { get; set; }
     public Transform dishPlaceHolder;
     public GameObject[] dishPrefabList;
     public Seeker seeker;
@@ -37,7 +37,7 @@ public class Owner : MonoBehaviour
         if (gameManager.CustomerQueue.Count > 0 && _state == OwnerState.Idle)
         {
             _nextCustomer = gameManager.CustomerQueue.Dequeue();
-            var nextCustomerPos = gameManager.standList[_nextCustomer].position;
+            var nextCustomerPos = gameManager.GetStand(_nextCustomer).position;
             _target = nextCustomerPos;
             _state = OwnerState.Moving;
             _nextState = OwnerState.Order;
@@ -105,7 +105,7 @@ public class Owner : MonoBehaviour
             _cookOrder = gameManager.OrderQueue.Dequeue();
             DOVirtual.DelayedCall(0.1f, () =>
             {
-                var cookForCustomerPos = gameManager.standList[_cookOrder.slotIndex].position;
+                var cookForCustomerPos = gameManager.GetStand(_cookOrder.slotIndex).position;
                 var cookDishPrefab = dishPrefabList[_cookOrder.dishIndex];
                 _dishObject = Instantiate(cookDishPrefab, dishPlaceHolder);
                 _state = OwnerState.Moving;
@@ -117,7 +117,7 @@ public class Owner : MonoBehaviour
         else if (_state == OwnerState.Serving)
         {
             Debug.Log("serving");
-            _dishObject.transform.SetParent(gameManager.dishPlaceHolderList[_cookOrder.slotIndex], false);
+            _dishObject.transform.SetParent(gameManager.GetDishPlaceHolder(_cookOrder.slotIndex), false);
             gameManager.GetCustomer(_cookOrder.slotIndex)?.ChangeState(CustomerState.Eating);
             DOVirtual.DelayedCall(0.1f, () =>
             {

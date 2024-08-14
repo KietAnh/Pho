@@ -209,6 +209,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7377966431215361655}
   - component: {fileID: 4740264258957461970}
+  - component: {fileID: -6491376722459261298}
   m_Layer: 6
   m_Name: kitchen-tom-chien-xu
   m_TagString: Untagged
@@ -283,3 +284,15 @@ PolygonCollider2D:
       - {x: 1.465852, y: 0.9387365}
       - {x: -0.2805128, y: 0.052854538}
   m_UseDelaunayMesh: 0
+--- !u!114 &-6491376722459261298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7566900177775319471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c891bf7cb33469478d90022656b2cf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

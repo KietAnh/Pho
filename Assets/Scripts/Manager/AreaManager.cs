@@ -29,9 +29,12 @@ public class AreaManager : SingletonBehaviour<AreaManager>
         areaList[areaUnlockId - 1].GetComponent<Collider2D>().OverlapCollider(notWalkableFilter, overlapResults);
         foreach (var collider in overlapResults)
         {
-            if (collider.transform.parent.CompareTag("tree"))
+            var tree = collider.transform.parent;
+            if (tree.CompareTag("tree"))
             {
-                Destroy(collider.transform.parent.gameObject);
+                GameController.CleanTree(tree.GetSiblingIndex(), collider);
+
+                Destroy(tree.gameObject);
             }
         }
     }

@@ -8,9 +8,9 @@ public class KeyFoodUnlock : MonoBehaviour, IPointerClickHandler
     public int id { get; set; }
     public void OnPointerClick(PointerEventData eventData)
     {
-        var kitchenPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(id).kitchenPrefab;
+        //var kitchenPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(id).kitchenPrefab;
 
-        Instantiate(kitchenPrefab);
+        //var kitchenObject = Instantiate(kitchenPrefab);
 
         GameController.UnlockFoodKitchen(id);
 

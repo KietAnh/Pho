@@ -41,6 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4577372215740942537}
   - component: {fileID: 2232322757614789550}
+  - component: {fileID: 3696267687730741632}
   m_Layer: 6
   m_Name: kitchen-sushi-ca-hoi
   m_TagString: Untagged
@@ -115,6 +116,18 @@ PolygonCollider2D:
       - {x: 0.6170686, y: 0.3358615}
       - {x: -0.08148885, y: -0.024078697}
   m_UseDelaunayMesh: 0
+--- !u!114 &3696267687730741632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2568993992788904002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c891bf7cb33469478d90022656b2cf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4129999849439734441
 GameObject:
   m_ObjectHideFlags: 0

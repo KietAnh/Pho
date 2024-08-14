@@ -6,4 +6,6 @@ public enum EventID
     OnUnlockTable,
     OnEarnMoney,
     OnUnlockArea,
+    OnCleanTree,
+    OnUnlockNotWalkableObject
 }

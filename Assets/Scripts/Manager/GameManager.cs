@@ -1,22 +1,32 @@
 ﻿
+using JetBrains.Annotations;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
-public class GameManager : MonoBehaviour
+public class GameManager : SingletonBehaviour<GameManager>
 {
     public UIManager uiManager;
 
     public Transform customerSpawner;
     public GameObject customerPrefab;
 
-    public Transform[] slotList;
-    public Transform[] slotPivotList; // point to find path
-    public Transform[] standList;
-    public Transform[] dishPlaceHolderList;
+    public Owner owner;
+
+    public GameObject treeContainer;
+
+    //public Transform[] slotList;
+    //public Transform[] slotPivotList; // point to find path
+    //public Transform[] standList;
+    //public Transform[] dishPlaceHolderList;
+
+    private List<Table> _tableList = new List<Table>();
+    private List<Kitchen> _kitchenList = new List<Kitchen>();
 
     private float _genCustomerTimer;
     private float _timeToGenCustomer;
-    private Customer[] _customerList;
+    private Customer[] _customerList;   // list customer đang có chỗ ngồi, id là id của slot
     private Queue<OrderInfo> _orderQueue;
     public Queue<OrderInfo> OrderQueue => _orderQueue;
 
@@ -24,8 +34,10 @@ public class GameManager : MonoBehaviour
     public Queue<int> CustomerQueue => _customerQueue;
 
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
         ServiceManager.Singleton.Init();
     }
 
@@ -35,22 +47,35 @@ public class GameManager : MonoBehaviour
 
         _genCustomerTimer = 0;
         _timeToGenCustomer = Random.Range(2f, 5f);
-        _customerList = new Customer[slotList.Length];
+        int slotCount = 0;
+        for (int i = 0; i < _tableList.Count; i++)
+        {
+            slotCount += _tableList[i].slotCount;
+        }
+        _customerList = new Customer[slotCount];
         _orderQueue = new Queue<OrderInfo>();
         _customerQueue = new Queue<int>();
 
         GED.ED.addListener(EventID.OnUnlockFoodKitchen, OnUnlockFoodKitchen_UnlockFoodKey);
-        GED.ED.addListener(EventID.OnUnlockTable, OnUnlockTable_UnlockTableKey);
+        GED.ED.addListener(EventID.OnUnlockTable, OnUnlockTable_UnlockTable);
         GED.ED.addListener(EventID.OnUnlockArea, OnUnlockArea_UnlockArea);
+
+        GED.ED.addListener(EventID.OnUnlockNotWalkableObject, OnUnlockNotWalkableObject_RescanPathFinderGraph);
+        GED.ED.addListener(EventID.OnCleanTree, OnCleanTree_RescanPathFinderGraph);
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         GED.ED.removeListener(EventID.OnUnlockFoodKitchen, OnUnlockFoodKitchen_UnlockFoodKey);
-        GED.ED.removeListener(EventID.OnUnlockTable, OnUnlockTable_UnlockTableKey);
+        GED.ED.removeListener(EventID.OnUnlockTable, OnUnlockTable_UnlockTable);
         GED.ED.removeListener(EventID.OnUnlockArea, OnUnlockArea_UnlockArea);
 
+        GED.ED.removeListener(EventID.OnUnlockNotWalkableObject, OnUnlockNotWalkableObject_RescanPathFinderGraph);
+        GED.ED.removeListener(EventID.OnCleanTree, OnCleanTree_RescanPathFinderGraph);
+
         ServiceManager.Singleton.SaveAllData();
+
+        base.OnDestroy();
     }
 
     private void OnApplicationPause(bool pause)
@@ -65,6 +90,9 @@ public class GameManager : MonoBehaviour
     {
         InitFoodKitchenUnlock();
         InitTableUnlock();
+        InitTree();
+
+        ScanPathFinderGraph();
     }
 
     private void InitFoodKitchenUnlock()
@@ -84,7 +112,13 @@ public class GameManager : MonoBehaviour
         for (int i = 1; i <= foodUnlockId; i++)
         {
             var kitchenPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(i).kitchenPrefab;
-            Instantiate(kitchenPrefab);
+            var kitchenObject = Instantiate(kitchenPrefab);
+            _kitchenList.Add(kitchenObject.GetComponent<Kitchen>());
+        }
+
+        if (_kitchenList.Count > 0)
+        {
+            owner.kitchenTrans = _kitchenList[0].transform; // temp
         }
 
         UnlockFoodKey(showKeyFoodUnlockIds);
@@ -108,15 +142,55 @@ public class GameManager : MonoBehaviour
         for (int i = 1; i <= tableUnlockId; i++)
         {
             var tablePrefab = ConfigLoader.GetRecord<TableUnlockRecord>(i).tablePrefab;
-            Instantiate(tablePrefab);
+            var tableObject = Instantiate(tablePrefab);
+            _tableList.Add(tableObject.GetComponent<Table>());
         }
 
         UnlockTableKey(showKeyTableUnlockIds);
     }
 
+    private void InitTree()   // init async ?
+    {
+        var treeCleanIdList = ServiceManager.Singleton.GetService<MainService>().treeCleanIdList;
+        
+        if (treeCleanIdList.Count == 0)
+        {
+            Instantiate(treeContainer);
+        }
+        else
+        {
+            var newTreeContainer = new GameObject("tree-container");
+            for (int i = 0; i < treeContainer.transform.childCount; i++)
+            {
+                var child = treeContainer.transform.GetChild(i);
+                if (child.CompareTag("tree") && !treeCleanIdList.Contains(i))
+                {
+                    var treePrefab = child;
+                    var treeObject = Instantiate(treePrefab, newTreeContainer.transform);
+                    treeObject.name = "tree-" + i;
+                }
+                
+            }
+        }
+    }
+
+    private void ScanPathFinderGraph()
+    {
+        TimeRecordUtil.Begin("Scan PathFinder Graph"); // 0.25s -> hơi lâu -> scan async
+        AstarPath.active.Scan();
+        TimeRecordUtil.End();
+    }
+
+    private void RescanPathFinderGraph(Collider2D collider)
+    {
+        TimeRecordUtil.Begin("Rescan PathFinder Graph");
+        AstarPath.active.UpdateGraphs(collider.bounds);
+        TimeRecordUtil.End();
+    }
+
     private void Update()
     {
-        //GenerateCustomerTimer();
+        GenerateCustomerTimer();
     }
 
     private void GenerateCustomerTimer()   // temp rule: ngẫu nhiên 5 - 10s sẽ gen 1 khách
@@ -125,7 +199,7 @@ public class GameManager : MonoBehaviour
         if (_genCustomerTimer > _timeToGenCustomer)
         {
             int slotIndex = GetSlotIndex();
-            Debug.Log("slot index: " + slotIndex);
+            DevLog.Log("slot index: " + slotIndex);
             if (slotIndex >= 0)
             {
                 var customerObject = Instantiate(customerPrefab, customerSpawner.position, customerSpawner.rotation);
@@ -154,6 +228,64 @@ public class GameManager : MonoBehaviour
         return freeSlots[Random.Range(0, freeSlots.Count)];
     }
 
+    public (int, int) ConvertGlobalSlotIndexToTableIndexAndLocalSlotIndex(int slotIndex) // check exception kỹ
+    {
+        for (int i = 0; i < _tableList.Count; i++)
+        {
+            if (slotIndex - _tableList[i].slotCount < 0)
+            {
+                return (i, slotIndex);
+            }
+            slotIndex -= _tableList[i].slotCount;
+        }
+        return (-1, -1);
+    }
+
+    public Transform GetSlot(int slotIndex)
+    {
+        var (tableIndex, localSlotIndex) = ConvertGlobalSlotIndexToTableIndexAndLocalSlotIndex(slotIndex);
+        if (tableIndex >= 0 && localSlotIndex >= 0)
+        {
+            return _tableList[tableIndex].slotList[localSlotIndex];
+        }
+        return null;
+    }
+
+    public Transform GetSlotPivot(int slotIndex)  
+    {
+        var tuple = ConvertGlobalSlotIndexToTableIndexAndLocalSlotIndex(slotIndex);
+        if (tuple.Item1 >= 0 && tuple.Item2 >=0)
+        {
+            int tableIndex = tuple.Item1;
+            int localSlotIndex = tuple.Item2;
+            return _tableList[tableIndex].slotPivotList[localSlotIndex];
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public Transform GetStand(int slotIndex)
+    {
+        var (tableIndex, localSlotIndex) = ConvertGlobalSlotIndexToTableIndexAndLocalSlotIndex(slotIndex);
+        if (tableIndex >= 0 && localSlotIndex >= 0)
+        {
+            return _tableList[tableIndex].standList[localSlotIndex];
+        }
+        return null;
+    }
+
+    public Transform GetDishPlaceHolder(int slotIndex)
+    {
+        var (tableIndex, localSlotIndex) = ConvertGlobalSlotIndexToTableIndexAndLocalSlotIndex(slotIndex);
+        if (tableIndex >= 0 && localSlotIndex >= 0)
+        {
+            return _tableList[tableIndex].dishPlaceHolderList[localSlotIndex];
+        }
+        return null;
+    }
+
     public Customer GetCustomer(int slotIndex)
     {
         return _customerList[slotIndex];
@@ -167,7 +299,8 @@ public class GameManager : MonoBehaviour
     
     public void RemoveDish(int slotIndex)
     {
-        Destroy(dishPlaceHolderList[slotIndex].GetChild(0).gameObject);
+        Transform dishPlaceHolder = GetDishPlaceHolder(slotIndex);
+        Destroy(dishPlaceHolder.GetChild(0).gameObject);
     }
 
     public void UnlockFoodKey(List<int> ids)
@@ -205,38 +338,38 @@ public class GameManager : MonoBehaviour
 
     private void OnUnlockFoodKitchen_UnlockFoodKey(GameEvent gameEvent)
     {
-        var param = gameEvent.Data as OneParam<List<int>>;
+        var param = gameEvent.Data as OneParam<int>;
+        int id = param.value1;
 
-        List<int> foodKeyUnlockList = param.value;
-        //int areaUnlockId = ServiceManager.Singleton.GetService<MainService>().areaUnlockId;
-        //foreach (var foodKeyId in foodKeyUnlockList)
-        //{
-        //    if (areaUnlockId >= ConfigLoader.GetRecord<FoodUnlockRecord>(foodKeyId).areaUnlockCondition)
-        //    {
-        //        var keyPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(foodKeyId).keyPrefab;
-        //        var keyObject = Instantiate(keyPrefab);
-        //        keyObject.GetComponent<KeyFoodUnlock>().id = foodKeyId;
-        //    }
-        //}
+        var foodKeyUnlockList = ConfigLoader.GetRecord<FoodUnlockRecord>(id).showKeys;
+        var kitchenPrefab = ConfigLoader.GetRecord<FoodUnlockRecord>(id).kitchenPrefab;
+        var kitchenObject = Instantiate(kitchenPrefab);
+        var kitchen = kitchenObject.GetComponent<Kitchen>();
+        _kitchenList.Add(kitchen);
+
+        if (_kitchenList.Count > 0 && owner.kitchenTrans == null)
+        {
+            owner.kitchenTrans = _kitchenList[0].transform; // temp
+        }
+
+        RescanPathFinderGraph(kitchenObject.GetComponent<Collider2D>());
 
         UnlockFoodKey(foodKeyUnlockList);
     }
 
-    private void OnUnlockTable_UnlockTableKey(GameEvent gameEvent)
+    private void OnUnlockTable_UnlockTable(GameEvent gameEvent)
     {
-        var param = gameEvent.Data as OneParam<List<int>>;
+        var param = gameEvent.Data as OneParam<int>;
+        int id = param.value1;
 
-        List<int> tableKeyUnlockList = param.value;
-        //int areaUnlockId = ServiceManager.Singleton.GetService<MainService>().areaUnlockId;
-        //foreach (var tableKeyId in tableKeyUnlockList)
-        //{
-        //    if (areaUnlockId >= ConfigLoader.GetRecord<TableUnlockRecord>(tableKeyId).areaUnlockCondition)
-        //    {
-        //        var keyPrefab = ConfigLoader.GetRecord<TableUnlockRecord>(tableKeyId).keyPrefab;
-        //        var keyObject = Instantiate(keyPrefab);
-        //        keyObject.GetComponent<KeyTableUnlock>().id = tableKeyId;
-        //    }
-        //}
+        var tableKeyUnlockList = ConfigLoader.GetRecord<TableUnlockRecord>(id).showKeys;
+        var tablePrefab = ConfigLoader.GetRecord<TableUnlockRecord>(id).tablePrefab;
+        var tableObject = Instantiate(tablePrefab);
+        var table = tableObject.GetComponent<Table>();
+        _tableList.Add(table);
+        Array.Resize(ref _customerList, _customerList.Length + table.slotCount);
+
+        RescanPathFinderGraph(tableObject.GetComponent<Collider2D>());
 
         UnlockTableKey(tableKeyUnlockList);
     }
@@ -270,6 +403,17 @@ public class GameManager : MonoBehaviour
         }
 
         UnlockTableKey(showKeyTableUnlockIds);
+    }
+
+    private void OnUnlockNotWalkableObject_RescanPathFinderGraph(GameEvent gameEvent)
+    {
+        var param = gameEvent.Data as OneParam<Collider2D>;
+        RescanPathFinderGraph(param.value1);
+    }
+    private void OnCleanTree_RescanPathFinderGraph(GameEvent gameEvent)
+    {
+        var param = gameEvent.Data as OneParam<Collider2D>;
+        RescanPathFinderGraph(param.value1);
     }
 
     #endregion

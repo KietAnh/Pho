@@ -2,7 +2,6 @@ using DG.Tweening;
 using Pathfinding;
 using UnityEngine;
 using TMPro;
-using UnityEditor;
 
 public class Customer : MonoBehaviour
 {
@@ -13,6 +12,7 @@ public class Customer : MonoBehaviour
 
     private CustomerState _state;
     private int _slotIndex;
+    private Transform _slotTrans;
     private int _currentWaypoint;
     private Path _path;
     private void Start()
@@ -20,9 +20,17 @@ public class Customer : MonoBehaviour
         ChangeState(CustomerState.Comming);
         gameManager = GameObject.FindObjectOfType<GameManager>();
 
-        Transform target = gameManager.slotPivotList[_slotIndex];
+        //Transform target = gameManager.slotPivotList[_slotIndex];
+        Transform target = gameManager.GetSlotPivot(_slotIndex);
         seeker.StartPath(transform.position, target.position, OnPathComputeComplete);
+
+        _slotTrans = gameManager.GetSlot(_slotIndex);
     }
+    public void SetSlot(int slotIndex)
+    {
+        _slotIndex = slotIndex;
+    }
+
     private void Update()
     {
 
@@ -36,8 +44,8 @@ public class Customer : MonoBehaviour
             _currentWaypoint = 0;
             if (_state == CustomerState.Leaving)
             {
-                float distance = Vector3.Distance(transform.position, gameManager.slotList[_slotIndex].position);
-                transform.DOMove(gameManager.slotList[_slotIndex].position, distance / speed).OnComplete(() =>
+                float distance = Vector3.Distance(transform.position, _slotTrans.position);
+                transform.DOMove(_slotTrans.position, distance / speed).OnComplete(() =>
                 {
                     GoToNextWaypoint();
                 });
@@ -73,8 +81,8 @@ public class Customer : MonoBehaviour
     {
         if (_state == CustomerState.Comming)
         {
-            float distance = Vector3.Distance(transform.position, gameManager.slotList[_slotIndex].position);
-            transform.DOMove(gameManager.slotList[_slotIndex].position, distance / speed).SetEase(Ease.Linear).OnComplete(() =>
+            float distance = Vector3.Distance(transform.position, _slotTrans.position);
+            transform.DOMove(_slotTrans.position, distance / speed).SetEase(Ease.Linear).OnComplete(() =>
             {
                 gameManager.CustomerQueue.Enqueue(_slotIndex);
                 ChangeState(CustomerState.Waiting);
@@ -86,10 +94,7 @@ public class Customer : MonoBehaviour
         }
     }
 
-    public void SetSlot(int slotIndex)
-    {
-        _slotIndex = slotIndex;
-    }
+    
 
     public void ChangeState(CustomerState state)
     {
@@ -114,7 +119,7 @@ public class Customer : MonoBehaviour
                     gameManager.RemoveCustomer(_slotIndex);
                     gameManager.RemoveDish(_slotIndex);
 
-                    seeker.StartPath(gameManager.slotList[_slotIndex].position, gameManager.customerSpawner.position, OnPathComputeComplete);
+                    seeker.StartPath(_slotTrans.position, gameManager.customerSpawner.position, OnPathComputeComplete);
 
                 });
                 break;

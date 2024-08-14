@@ -7,11 +7,12 @@ public class KeyTableUnlock : MonoBehaviour, IPointerClickHandler
 {
     public int id { get; set; }
 
+
     public void OnPointerClick(PointerEventData eventData)
     {
-        var tablePrefab = ConfigLoader.GetRecord<TableUnlockRecord>(id).tablePrefab;
+        //var tablePrefab = ConfigLoader.GetRecord<TableUnlockRecord>(id).tablePrefab;
 
-        Instantiate(tablePrefab);
+        //var tableObject = Instantiate(tablePrefab);
 
         GameController.UnlockTable(id);
 
